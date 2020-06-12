@@ -42,9 +42,20 @@ Vagrant.configure("2") do |config|
   # Install Python on Arch so Ansible can bootstrap.
   # We can't easily provision commands on specific distros here, so we do a check inline.
   config.vm.provision "shell", inline: "[ -f /etc/arch-release ] && pacman -Sy --noconfirm python || true"
+  # Copy in Ansible files.
+  config.vm.provision "file", source: "playbook.yml", destination: "/home/vagrant/playbook.yml"
+  config.vm.provision "file", source: "requirements.yml", destination: "/home/vagrant/requirements.yml"
+  config.vm.provision "file", source: "scripts/docker-tools.sh", destination: "/home/vagrant/scripts/docker-tools.sh"
   # Primary provisioning in Ansible.
-  config.vm.provision "ansible" do |ansible|
+  config.vm.provision "ansible_local" do |ansible|
+    ansible.become = true
+    ansible.provisioning_path = "/home/vagrant"
     ansible.playbook = "playbook.yml"
+    ansible.install_mode = "pip"
+    ansible.version = "2.9.9"
+    ansible.galaxy_role_file = "requirements.yml"
+    ansible.galaxy_roles_path = "/etc/ansible/roles"
+    ansible.galaxy_command = "sudo ansible-galaxy install --role-file=%{role_file} --roles-path=%{roles_path} --force"
     ansible.groups = groups
     ansible.extra_vars = {
       redhat_username: ENV['REDHAT_USERNAME'],

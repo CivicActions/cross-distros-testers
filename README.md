@@ -9,14 +9,13 @@ This uses Vagrant, VirtualBox and Ansible to provision a series of virtual machi
 
 ## Getting started
 
-- Install Vagrant, VirtualBox and Ansible
+- Install Vagrant and VirtualBox (you don't need Ansible installed locally as it runs on the VMs)
 - Clone this repository to a working directory
 - In the working directory run:
 
 ```
 export REDHAT_USERNAME=<redhat-username-here>
 export REDHAT_PASSWORD=<redhat-password-here>
-ansible-galaxy install -r requirements.yml
 vagrant up
 ```
 
