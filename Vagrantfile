@@ -8,6 +8,7 @@ distros = {
 groups = {}
 
 Vagrant.configure("2") do |config|
+  config.env.enable
   config.vm.provider "virtualbox" do |v|
     v.memory = 512
     v.cpus = 1
