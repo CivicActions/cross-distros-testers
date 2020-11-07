@@ -45,7 +45,6 @@ Vagrant.configure("2") do |config|
   # Copy in Ansible files.
   config.vm.provision "file", source: "playbook.yml", destination: "/home/vagrant/playbook.yml"
   config.vm.provision "file", source: "requirements.yml", destination: "/home/vagrant/requirements.yml"
-  config.vm.provision "file", source: "scripts/docker-tools.sh", destination: "/home/vagrant/scripts/docker-tools.sh"
   # Primary provisioning in Ansible.
   config.vm.provision "ansible_local" do |ansible|
     ansible.become = true

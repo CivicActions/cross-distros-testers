@@ -88,8 +88,6 @@
       name: docker
       state: started
       enabled: true
-  - name: Install all stable Docker Compose versions
-    script: scripts/docker-tools.sh
 
 - name: Install Gitlab Runner (binary only, distro)
   hosts: all:!family-el8:!distro-arch
