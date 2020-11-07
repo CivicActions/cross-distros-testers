@@ -14,8 +14,9 @@ This uses Vagrant, VirtualBox and Ansible to provision a series of virtual machi
 - In the working directory run:
 
 ```
-export REDHAT_USERNAME=<redhat-username-here>
-export REDHAT_PASSWORD=<redhat-password-here>
+vagrant plugin install vagrant-env
+echo 'REDHAT_USERNAME=<redhat-username-here>' > .env
+echo 'export REDHAT_PASSWORD=<redhat-password-here>' >> .env
 vagrant up
 ```
 
