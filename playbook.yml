@@ -1,29 +1,25 @@
 ---
 - name: RHEL setup
-  hosts: distro-rhel:distro-centos
+  hosts: distro_rhel:distro_centos
   become: true
   tasks:
-  - name: Register and auto-subscribe to available content.
-    redhat_subscription:
-      state: present
-      username: "{{ redhat_username | mandatory }}"
-      password: "{{ redhat_password | mandatory }}"
-      auto_attach: true
   - name: Enable Red Hat Extras Repository
     rhsm_repository:
       name:
         - rhel-7-server-extras-rpms
       state: enabled
 - name: RHEL/CentOS packages
-  hosts: distro-rhel:distro-centos
+  hosts: distro_rhel:distro_centos
   become: true
   tasks:
   - name: Upgrade all packages
     yum:
       name: '*'
       state: latest
+      update_cache: yes
+      lock_timeout: 1
 - name: Ubuntu packages
-  hosts: distro-ubuntu
+  hosts: distro_ubuntu
   become: true
   tasks:
   - name: Upgrade all packages
@@ -31,7 +27,7 @@
       name: '*'
       state: latest
 - name: Arch packages
-  hosts: distro-arch
+  hosts: distro_arch
   become: true
   tasks:
   - name: Upgrade all packages
@@ -51,21 +47,21 @@
         - git
 
 - name: Non-Ubuntu distro Docker
-  hosts: docker-distro:!distro-ubuntu
+  hosts: docker_distro:!distro_ubuntu
   become: true
   tasks:
   - name: Install distro docker
     package:
       name: docker
 - name: Ubuntu distro Docker
-  hosts: docker-distro:&distro-ubuntu
+  hosts: docker_distro:&distro_ubuntu
   become: true
   tasks:
   - name: Install distro docker
     apt:
       name: docker.io
 - name: Upstream Docker
-  hosts: docker-upstream
+  hosts: docker_upstream
   become: true
   vars:
     docker_install_compose: false
@@ -90,14 +86,14 @@
       enabled: true
 
 - name: Install Gitlab Runner (binary only, distro)
-  hosts: all:!family-el8:!distro-arch
+  hosts: all:!distro_version_rhel_8:!distro_version_centos_8:!distro_arch
   roles:
     - role: lean_delivery.gitlab_runner
   vars:
     gitlab_runner_concurrent: 1
     gitlab_runner_skip_registration: true
 - name: RHEL/CentOS 8 Install Gitlab Runner (binary only)
-  hosts: family-el8:!distro-arch
+  hosts: distro_version_rhel_8:distro_version_centos_8
   roles:
     - role: lean_delivery.gitlab_runner
   vars:
@@ -108,7 +104,7 @@
     python_executable: python3
     pip_executable: /usr/bin/pip3
 - name: Arch Install Gitlab Runner (binary only)
-  hosts: distro-arch
+  hosts: distro_arch
   become: true
   tasks:
   - name: Install a list of basic packages
