@@ -1,0 +1,19 @@
+stages:
+  - validate
+  - build
+
+default:
+  tags:
+    - windows
+
+validate:
+  stage: validate
+  script:
+    - packer validate packer.pkr.hcl
+
+build:
+  stage: build
+  script:
+    - packer build -parallel-builds=1 --force packer.pkr.hcl
+  only:
+    - master
