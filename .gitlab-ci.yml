@@ -1,6 +1,7 @@
 stages:
   - validate
   - build
+  - create
 
 default:
   tags:
@@ -15,5 +16,14 @@ build:
   stage: build
   script:
     - packer build -parallel-builds=1 --force packer.pkr.hcl
+  only:
+    - master
+
+create:
+  stage: create
+  script:
+    - vagrant down
+    - vagrant up
+    - vagrant halt
   only:
     - master

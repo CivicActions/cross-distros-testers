@@ -1,6 +1,6 @@
 ---
 - name: RHEL setup
-  hosts: distro_rhel:distro_centos
+  hosts: distro_version_rhel_7
   become: true
   tasks:
   - name: Enable Red Hat Extras Repository
@@ -8,32 +8,6 @@
       name:
         - rhel-7-server-extras-rpms
       state: enabled
-- name: RHEL/CentOS packages
-  hosts: distro_rhel:distro_centos
-  become: true
-  tasks:
-  - name: Upgrade all packages
-    yum:
-      name: '*'
-      state: latest
-      update_cache: yes
-      lock_timeout: 1
-- name: Ubuntu packages
-  hosts: distro_ubuntu
-  become: true
-  tasks:
-  - name: Upgrade all packages
-    apt:
-      name: '*'
-      state: latest
-- name: Arch packages
-  hosts: distro_arch
-  become: true
-  tasks:
-  - name: Upgrade all packages
-    pacman:
-      update_cache: yes
-      upgrade: yes
 - name: Base packages
   hosts: all
   become: true
@@ -86,7 +60,7 @@
       enabled: true
 
 - name: Install Gitlab Runner (binary only, distro)
-  hosts: all:!distro_version_rhel_8:!distro_version_centos_8:!distro_arch
+  hosts: distro_ubuntu:distro_version_rhel_7:distro_version_centos_7
   roles:
     - role: lean_delivery.gitlab_runner
   vars:
