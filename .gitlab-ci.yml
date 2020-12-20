@@ -1,29 +1,26 @@
 stages:
   - validate
   - build
-  - create
 
 default:
   tags:
-    - windows
+    - vagrant
 
 validate:
   stage: validate
   script:
-    - packer validate packer.pkr.hcl
+    - vagrant validate
 
 build:
   stage: build
   script:
-    - packer build -parallel-builds=1 --force packer.pkr.hcl
-  only:
-    - master
-
-create:
-  stage: create
-  script:
-    - vagrant down
-    - vagrant up
-    - vagrant halt
+    # We build one at a time, since we have limited memory.
+    - while read -r name; do
+        echo "Building ${name}"
+        vagrant destroy --force "${name}"
+        vagrant up "${name}"
+        vagrant halt "${name}"
+        # TODO: Register runner here
+      done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print $2 }}')
   only:
     - master

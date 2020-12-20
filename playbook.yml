@@ -1,4 +1,14 @@
 ---
+- name: RHEL register
+  hosts: distro_rhel
+  become: true
+  tasks:
+  - name: Register and auto-subscribe to available content.
+    redhat_subscription:
+      state: present
+      username: "{{ redhat_username | mandatory }}"
+      password: "{{ redhat_password | mandatory }}"
+      auto_attach: true
 - name: RHEL setup
   hosts: distro_version_rhel_7
   become: true
@@ -8,6 +18,32 @@
       name:
         - rhel-7-server-extras-rpms
       state: enabled
+- name: RHEL/CentOS packages
+  hosts: distro_rhel:distro_centos
+  become: true
+  tasks:
+  - name: Upgrade all packages
+    yum:
+      name: '*'
+      state: latest
+      update_cache: yes
+      lock_timeout: 1
+- name: Ubuntu packages
+  hosts: distro_ubuntu
+  become: true
+  tasks:
+  - name: Upgrade all packages
+    apt:
+      name: '*'
+      state: latest
+- name: Arch packages
+  hosts: distro_arch
+  become: true
+  tasks:
+  - name: Upgrade all packages
+    pacman:
+      update_cache: yes
+      upgrade: yes
 - name: Base packages
   hosts: all
   become: true
@@ -60,14 +96,14 @@
       enabled: true
 
 - name: Install Gitlab Runner (binary only, distro)
-  hosts: distro_ubuntu:distro_version_rhel_7:distro_version_centos_7
+  hosts: all:!family_el8:!distro_arch
   roles:
     - role: lean_delivery.gitlab_runner
   vars:
     gitlab_runner_concurrent: 1
     gitlab_runner_skip_registration: true
 - name: RHEL/CentOS 8 Install Gitlab Runner (binary only)
-  hosts: distro_version_rhel_8:distro_version_centos_8
+  hosts: family_el8:!distro_arch
   roles:
     - role: lean_delivery.gitlab_runner
   vars:

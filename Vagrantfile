@@ -8,19 +8,20 @@ unless Vagrant.has_plugin?('vagrant-reload')
   # Restart the process with the plugin installed.
   exec "vagrant #{ARGV.join(' ')}"
 end
+unless Vagrant.has_plugin?('vagrant-env')
+  puts 'vagrant-env plugin not found, installing'
+  system 'vagrant plugin install vagrant-env'
+  # Restart the process with the plugin installed.
+  exec "vagrant #{ARGV.join(' ')}"
+end
 
-packer_boxes = [
-  "centos_7_distro",
-  "centos_7_upstream",
-  "centos_8_upstream",
-  "rhel_7_distro",
-  "rhel_8_upstream",
-  "ubuntu_1804_distro",
-  "ubuntu_1804_upstream",
-  "ubuntu_2004_distro",
-  "ubuntu_2004_upstream",
-  "arch_0_distro"
-]
+distros = {
+  "ubuntu" => { "1804" => [ "distro", "upstream" ], "2004" => [ "distro", "upstream" ] },
+  "rhel" => { "7"  => [ "distro", "upstream" ], "8" => [ "upstream" ] },
+  "centos" => { "7"  => [ "distro", "upstream" ], "8" => [ "upstream" ] },
+  "arch" => { ""  => [ "distro" ] }
+}
+groups = {}
 
 def get_windows_vm_box_version()
   # We're pinning to this specific version due to recent Docker versions (above 19.03.05) being broken
@@ -35,18 +36,56 @@ Vagrant.configure("2") do |config|
   end
   config.vm.boot_timeout = 600
 
-  packer_boxes.each do |(box)|
-    config.vm.define box do |cfg|
-      cfg.vm.box = box
-      cfg.vm.box_url = "file://" + box + "/package.box"
-      cfg.vm.provider "virtualbox" do |v|
-        v.name = box
+  distros.each_with_index do |(distro, versions)|
+    groups["distro_" + distro] = []
+    versions.each_with_index do |(version, dockers)|
+      groups["release_" + distro + version] = []
+      dockers.each do |(docker)|
+        groups["docker_" + docker] = []
+        hostname = distro + version + docker
+        config.vm.define hostname do |cfg|
+          cfg.vm.provider :virtualbox do |vb, override|
+            config.vm.box = "generic/" + distro + version
+            override.vm.hostname = hostname
+            vb.name = hostname
+            groups["distro_" + distro] << hostname
+            groups["release_" + distro + version] ||= []
+            groups["release_" + distro + version] << hostname
+            groups["docker_" + docker] << hostname
+            if distro == "rhel" or distro == "centos"
+              groups["family_el" + version] ||= []
+              groups["family_el" + version] << hostname
+            end
+            if distro == "arch"
+              config.vm.provision "shell", inline: "[ -f /etc/arch-release ] && pacman -Sy --noconfirm python || true"
+            end
+          end
+          # Copy in Ansible files.
+          config.vm.provision "file", source: "playbook.yml", destination: "/home/vagrant/playbook.yml"
+          config.vm.provision "file", source: "requirements.yml", destination: "/home/vagrant/requirements.yml"
+          # Primary provisioning in Ansible.
+          config.vm.provision "ansible_local" do |ansible|
+            ansible.become = true
+            ansible.provisioning_path = "/home/vagrant"
+            ansible.playbook = "playbook.yml"
+            ansible.install_mode = "pip"
+            ansible.version = "2.9.9"
+            ansible.galaxy_role_file = "requirements.yml"
+            ansible.galaxy_roles_path = "/etc/ansible/roles"
+            ansible.galaxy_command = "sudo ansible-galaxy install --role-file=%{role_file} --roles-path=%{roles_path} --force"
+            ansible.groups = groups
+            ansible.extra_vars = {
+              redhat_username: ENV['REDHAT_USERNAME'],
+              redhat_password: ENV['REDHAT_PASSWORD'],
+            }
+          end
+        end
       end
     end
   end
 
- # Windows boxes and scripts based on: https://gitlab.com/gitlab-org/gitlab-runner/-/blob/master/Vagrantfile
- config.vm.define 'windows_server', primary: true do |cfg|
+  # Windows boxes and scripts based on: https://gitlab.com/gitlab-org/gitlab-runner/-/blob/master/Vagrantfile
+  config.vm.define 'windows_server', primary: true do |cfg|
     cfg.vm.box = 'StefanScherer/windows_2019_docker'
     cfg.vm.box_version = get_windows_vm_box_version()
     cfg.vm.communicator = 'winrm'
