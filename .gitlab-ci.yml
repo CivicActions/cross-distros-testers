@@ -9,6 +9,7 @@ default:
 validate:
   stage: validate
   script:
+    - vagrant plugin install --local
     - vagrant validate
 
 build:
