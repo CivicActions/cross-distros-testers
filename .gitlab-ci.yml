@@ -3,13 +3,14 @@ stages:
   - build
 
 default:
+  before_script:
+    - vagrant plugin install --local
   tags:
     - vagrant
 
 validate:
   stage: validate
   script:
-    - vagrant plugin install --local
     - vagrant validate
 
 build:
