@@ -14,6 +14,13 @@ unless Vagrant.has_plugin?('vagrant-env')
   # Restart the process with the plugin installed.
   exec "vagrant #{ARGV.join(' ')}"
 end
+unless Vagrant.has_plugin?('winrm')
+  puts 'winrm plugin not found, installing'
+  system 'vagrant plugin install winrm'
+  system 'vagrant plugin install winrm-fs'
+  # Restart the process with the plugin installed.
+  exec "vagrant #{ARGV.join(' ')}"
+end
 
 distros = {
   "ubuntu" => { "1804" => [ "distro", "upstream" ], "2004" => [ "distro", "upstream" ] },
