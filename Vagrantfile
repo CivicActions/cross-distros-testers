@@ -1,28 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Check if the required plugins are installed.
-unless Vagrant.has_plugin?('vagrant-reload')
-  puts 'vagrant-reload plugin not found, installing'
-  system 'vagrant plugin install vagrant-reload'
-  # Restart the process with the plugin installed.
-  exec "vagrant #{ARGV.join(' ')}"
-end
-unless Vagrant.has_plugin?('vagrant-env')
-  puts 'vagrant-env plugin not found, installing'
-  system 'vagrant plugin install vagrant-env'
-  # Restart the process with the plugin installed.
-  exec "vagrant #{ARGV.join(' ')}"
-end
-unless Vagrant.has_plugin?('winrm')
-  puts 'winrm plugin not found, installing'
-  system 'vagrant plugin install winrm'
-  system 'vagrant plugin install winrm-fs'
-  system 'vagrant plugin install winrm-elevated'
-  # Restart the process with the plugin installed.
-  exec "vagrant #{ARGV.join(' ')}"
-end
-
 distros = {
   "ubuntu" => { "1804" => [ "distro", "upstream" ], "2004" => [ "distro", "upstream" ] },
   "rhel" => { "7"  => [ "distro", "upstream" ], "8" => [ "upstream" ] },
@@ -38,6 +16,8 @@ def get_windows_vm_box_version()
 end
 
 Vagrant.configure("2") do |config|
+  config.vagrant.plugins = ["vagrant-env", "vagrant-reload", "winrm", "winrm-fs", "winrm-elevated"]
+  config.vagrant.sensitive = [ENV["REDHAT_USERNAME"], ENV['REDHAT_PASSWORD']]
   config.vm.provider "virtualbox" do |v|
     v.memory = 512
     v.cpus = 1
