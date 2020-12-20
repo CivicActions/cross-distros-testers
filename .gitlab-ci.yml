@@ -20,10 +20,21 @@ build:
     - |
       while read -r name; do
         echo "Building ${name}"
-        vagrant destroy --force "${name}"
         vagrant up "${name}"
         vagrant halt "${name}"
         # TODO: Register runner here
       done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print $2 }}')
+  only:
+    - master
+
+destroy:
+  stage: build
+  script:
+    - |
+      while read -r name; do
+        echo "Destroying ${name}"
+        vagrant destroy --force "${name}"
+      done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print $2 }}')
+  when: manual
   only:
     - master
