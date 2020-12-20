@@ -18,6 +18,7 @@ unless Vagrant.has_plugin?('winrm')
   puts 'winrm plugin not found, installing'
   system 'vagrant plugin install winrm'
   system 'vagrant plugin install winrm-fs'
+  system 'vagrant plugin install winrm-elevated'
   # Restart the process with the plugin installed.
   exec "vagrant #{ARGV.join(' ')}"
 end
