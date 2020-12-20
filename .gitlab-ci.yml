@@ -15,7 +15,8 @@ build:
   stage: build
   script:
     # We build one at a time, since we have limited memory.
-    - while read -r name; do
+    - |
+      while read -r name; do
         echo "Building ${name}"
         vagrant destroy --force "${name}"
         vagrant up "${name}"
