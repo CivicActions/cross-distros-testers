@@ -23,7 +23,7 @@ build:
         vagrant up "${name}"
         vagrant halt "${name}"
         # TODO: Register runner here
-      done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print $2 }}')
+      done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "state" && $4 == "not_created") { print $2 }}')
   only:
     - master
 
