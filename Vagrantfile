@@ -3,8 +3,8 @@
 
 distros = {
   "ubuntu" => { "1804" => [ "distro", "upstream" ], "2004" => [ "distro", "upstream" ] },
-  "rhel" => { "7"  => [ "distro", "upstream" ], "8" => [ "upstream" ] },
-  "centos" => { "7"  => [ "distro", "upstream" ], "8" => [ "upstream" ] },
+  "rhel" => { "7"  => [ "distro", "upstream" ], "8" => [ "distro", "upstream" ] },
+  "centos" => { "7"  => [ "distro", "upstream" ], "8" => [ "distro", "upstream" ] },
   "arch" => { ""  => [ "distro" ] }
 }
 groups = {}
