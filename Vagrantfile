@@ -45,14 +45,14 @@ Vagrant.configure("2") do |config|
               groups["family_el" + version] << hostname
             end
             if distro == "arch"
-              config.vm.provision "shell", inline: "[ -f /etc/arch-release ] && pacman -Sy --noconfirm python || true"
+              cfg.vm.provision "shell", inline: "pacman -Sy --noconfirm python"
             end
           end
           # Copy in Ansible files.
-          config.vm.provision "file", source: "playbook.yml", destination: "/home/vagrant/playbook.yml"
-          config.vm.provision "file", source: "requirements.yml", destination: "/home/vagrant/requirements.yml"
+          cfg.vm.provision "file", source: "playbook.yml", destination: "/home/vagrant/playbook.yml"
+          cfg.vm.provision "file", source: "requirements.yml", destination: "/home/vagrant/requirements.yml"
           # Primary provisioning in Ansible.
-          config.vm.provision "ansible_local" do |ansible|
+          cfg.vm.provision "ansible_local" do |ansible|
             ansible.become = true
             ansible.provisioning_path = "/home/vagrant"
             ansible.playbook = "playbook.yml"
