@@ -47,6 +47,9 @@ Vagrant.configure("2") do |config|
             if distro == "arch"
               cfg.vm.provision "shell", inline: "pacman -Sy --noconfirm python"
             end
+            if distro == "rhel"
+              cfg.vm.provision "shell", inline: "subscription-manager register --username '" + ENV['REDHAT_USERNAME'] + "' --password '" + ENV['REDHAT_PASSWORD'] + "' --auto-attach"
+            end
           end
           # Copy in Ansible files.
           cfg.vm.provision "file", source: "playbook.yml", destination: "/home/vagrant/playbook.yml"
