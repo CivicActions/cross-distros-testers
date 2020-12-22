@@ -24,6 +24,7 @@ build:
         vagrant halt "${name}" || true
         # TODO: Register runner here
       done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "state" && $4 == "not_created") { print $2 }}')
+    - vagrant status
   only:
     - master
 
@@ -32,9 +33,14 @@ destroy:
   script:
     - |
       while read -r name; do
-        echo "Destroying ${name}"
+        echo "Destroying Vagrant ${name}"
         vagrant destroy --force "${name}"
       done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print $2 }}')
+    - |
+      while read -r name; do
+        echo "Destroying VM ${name}"
+        vboxmanage unregistervm --delete "${name}"
+      done <<< $(vboxmanage list vms | cut -d'"' -f2)
   when: manual
   only:
     - master
