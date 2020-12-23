@@ -10,7 +10,7 @@
       password: "{{ redhat_password | mandatory }}"
       auto_attach: true
 - name: RHEL setup
-  hosts: release_rhel_7
+  hosts: release_rhel7
   become: true
   tasks:
   - name: Enable Red Hat Extras Repository
