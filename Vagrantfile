@@ -32,24 +32,24 @@ Vagrant.configure("2") do |config|
         groups["docker_" + docker] = []
         hostname = distro + version + docker
         config.vm.define hostname do |cfg|
+          cfg.vm.box = "generic/" + distro + version
           cfg.vm.provider :virtualbox do |vb, override|
-            config.vm.box = "generic/" + distro + version
             override.vm.hostname = hostname
             vb.name = hostname
-            groups["distro_" + distro] << hostname
-            groups["release_" + distro + version] ||= []
-            groups["release_" + distro + version] << hostname
-            groups["docker_" + docker] << hostname
-            if distro == "rhel" or distro == "centos"
-              groups["family_el" + version] ||= []
-              groups["family_el" + version] << hostname
-            end
-            if distro == "arch"
-              cfg.vm.provision "shell", inline: "pacman -Sy --noconfirm python"
-            end
-            if distro == "rhel"
-              cfg.vm.provision "shell", inline: "subscription-manager register --username '" + ENV['REDHAT_USERNAME'] + "' --password '" + ENV['REDHAT_PASSWORD'] + "' --auto-attach"
-            end
+          end
+          groups["distro_" + distro] << hostname
+          groups["release_" + distro + version] ||= []
+          groups["release_" + distro + version] << hostname
+          groups["docker_" + docker] << hostname
+          if distro == "rhel" or distro == "centos"
+            groups["family_el" + version] ||= []
+            groups["family_el" + version] << hostname
+          end
+          if distro == "arch"
+            cfg.vm.provision "shell", inline: "pacman -Sy --noconfirm python"
+          end
+          if distro == "rhel"
+            cfg.vm.provision "shell", inline: "subscription-manager register --force --username '" + ENV['REDHAT_USERNAME'] + "' --password '" + ENV['REDHAT_PASSWORD'] + "' --auto-attach"
           end
           # Copy in Ansible files.
           cfg.vm.provision "file", source: "playbook.yml", destination: "/home/vagrant/playbook.yml"
