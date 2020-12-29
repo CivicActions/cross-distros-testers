@@ -18,7 +18,7 @@ build:
   stage: build
   script:
     # We build one at a time, since we have limited memory.
-    - vagrant up "${name}"
+    - vagrant up --provision "${name}"
     - vagrant halt "${name}"
     # TODO: Register runner here
   parallel:
