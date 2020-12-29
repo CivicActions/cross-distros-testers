@@ -73,8 +73,8 @@ Vagrant.configure("2") do |config|
           cfg.vm.provision "shell", inline: "getent group docker || sudo groupadd docker"
           cfg.vm.provision "shell", inline: "sudo usermod -aG docker vagrant"
           # Install Gitlab Runner:
-          cfg.vm.provision "shell", inline: "sudo curl -L --output /usr/local/bin/gitlab-runner 'https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64'"
-          cfg.vm.provision "shell", inline: "sudo chmod +x /usr/local/bin/gitlab-runner"
+          cfg.vm.provision "shell", inline: "sudo curl --silent --show-error -L --max-redirs 3 --retry 3 --retry-connrefused --retry-delay 2 --max-time 30 --output /usr/bin/gitlab-runner 'https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64'"
+          cfg.vm.provision "shell", inline: "sudo chmod +x /usr/bin/gitlab-runner"
           cfg.vm.provision "shell", inline: "sudo gitlab-runner install --user=vagrant --working-directory=/home/vagrant"
           cfg.vm.provision "shell", inline: "sudo gitlab-runner start"
         end

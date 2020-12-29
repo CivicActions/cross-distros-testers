@@ -79,6 +79,7 @@ destroyall:
         echo "Destroying Vagrant ${name}"
         vagrant destroy --force "${name}"
       done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print $2 }}')
+    - sleep 30
     - |
       while read -r name; do
         echo "Destroying VM ${name}"
