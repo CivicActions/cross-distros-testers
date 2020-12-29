@@ -45,11 +45,12 @@ Vagrant.configure("2") do |config|
             end
           end
           if distro == "rhel" || distro == "centos"
-            cfg.vm.provision "shell", inline: "sudo yum install -y bash zsh mksh git"
+            cfg.vm.provision "shell", inline: "sudo yum -y update"
+            cfg.vm.provision "shell", inline: "sudo yum -y install bash zsh mksh git"
           end
           if distro == "ubuntu"
             cfg.vm.provision "shell", inline: "sudo apt-get -y upgrade"
-            cfg.vm.provision "shell", inline: "sudo apt-get install -y bash zsh mksh git"
+            cfg.vm.provision "shell", inline: "sudo apt-get -y install bash zsh mksh git"
           end
           # Then restart (needed in case of Kernel upgrades)
           cfg.vm.provision :reload
@@ -81,8 +82,17 @@ Vagrant.configure("2") do |config|
               cfg.vm.provision "shell", inline: "sudo apt-get install -y docker.io"
             end
           else
-             # Install upstream docker:
-             cfg.vm.provision "shell", inline: "curl -fsSL https://get.docker.com | sh"
+            # Install upstream docker:
+            if distro == "rhel"
+                cfg.vm.provision "shell", inline: "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+                if version == "7"
+                  cfg.vm.provision "shell", inline: "sudo yum-config-manager --setopt='docker-ce-stable.baseurl=https://download.docker.com/linux/centos/7/x86_64/stable' --save"
+                end
+                cfg.vm.provision "shell", inline: "sudo yum install -y docker-ce"
+              end
+            else
+              cfg.vm.provision "shell", inline: "curl -fsSL https://get.docker.com | sh"
+            end
           end
           # Ensure service started and vagrant user has access:
           if docker_service == true
