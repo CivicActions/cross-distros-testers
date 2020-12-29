@@ -1,6 +1,7 @@
 stages:
   - validate
   - build
+  - destroy
 
 default:
   before_script:
@@ -17,19 +18,61 @@ build:
   stage: build
   script:
     # We build one at a time, since we have limited memory.
-    - |
-      while read -r name; do
-        echo "Building ${name}"
-        vagrant up "${name}"
-        vagrant halt "${name}"
-        # TODO: Register runner here
-      done <<< $(vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "state" && $4 == "not_created") { print $2 }}')
-    - vagrant status
+    - vagrant up "${name}"
+    - vagrant halt "${name}"
+    # TODO: Register runner here
+  parallel:
+    matrix:
+      # To update list, run:
+      # vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print "        - " $2 }}'
+      - name: ubuntu1804distro
+      - name: ubuntu1804upstream
+      - name: ubuntu2004distro
+      - name: ubuntu2004upstream
+      - name: rhel7distro
+      - name: rhel7upstream
+      - name: rhel8distro
+      - name: rhel8upstream
+      - name: centos7distro
+      - name: centos7upstream
+      - name: centos8distro
+      - name: centos8upstream
+      - name: archdistro
+      - name: windows_server
+      - name: windows_10
+  when: manual
   only:
     - master
 
 destroy:
-  stage: build
+  stage: destroy
+  script:
+    - vagrant destroy --force "${name}"
+  parallel:
+    matrix:
+      # To update list, run:
+      # vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print "        - " $2 }}'
+      - name: ubuntu1804distro
+      - name: ubuntu1804upstream
+      - name: ubuntu2004distro
+      - name: ubuntu2004upstream
+      - name: rhel7distro
+      - name: rhel7upstream
+      - name: rhel8distro
+      - name: rhel8upstream
+      - name: centos7distro
+      - name: centos7upstream
+      - name: centos8distro
+      - name: centos8upstream
+      - name: archdistro
+      - name: windows_server
+      - name: windows_10
+  when: manual
+  only:
+    - master
+
+destroyall:
+  stage: destroy
   script:
     - |
       while read -r name; do
