@@ -51,14 +51,30 @@ Vagrant.configure("2") do |config|
             cfg.vm.provision "shell", inline: "sudo apt-get -y upgrade"
             cfg.vm.provision "shell", inline: "sudo apt-get install -y bash zsh mksh git"
           end
+          # Then restart (needed in case of Kernel upgrades)
+          config.vm.provision :reload
           # Docker setup:
+          docker_service = true
           if docker = "distro"
              # Install distro docker:
             if distro == "arch"
               cfg.vm.provision "shell", inline: "sudo pacman -Sy --noconfirm docker"
             end
             if distro == "rhel" || distro == "centos"
-              cfg.vm.provision "shell", inline: "sudo yum install -y docker"
+              if version == "7"
+                cfg.vm.provision "shell", inline: "sudo yum install -y docker"
+              else
+                # Podman instead
+                cfg.vm.provision "shell", inline: "sudo dnf install -y podman slirp4netns"
+                if distro == "rhel"
+                  cfg.vm.provision "shell", inline: "sudo dnf module install -y container-tools"
+                end
+                # Setup rootless access: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/building_running_and_managing_containers/starting-with-containers_building-running-and-managing-containers
+                cfg.vm.provision "shell", inline: 'echo "user.max_user_namespaces=28633" > /etc/sysctl.d/userns.conf'
+                cfg.vm.provision "shell", inline: "sysctl -p /etc/sysctl.d/userns.conf"
+                cfg.vm.provision "shell", inline: 'echo "vagrant:165537:65536" >> /etc/subuid'
+                cfg.vm.provision "shell", inline: 'echo "vagrant:165537:65536" >> /etc/subgid'
+              end
             end
             if distro == "ubuntu"
               cfg.vm.provision "shell", inline: "sudo apt-get install -y docker.io"
@@ -68,12 +84,14 @@ Vagrant.configure("2") do |config|
              cfg.vm.provision "shell", inline: "curl -fsSL https://get.docker.com | sh"
           end
           # Ensure service started and vagrant user has access:
-          cfg.vm.provision "shell", inline: "sudo systemctl start docker"
-          cfg.vm.provision "shell", inline: "sudo systemctl enable docker"
-          cfg.vm.provision "shell", inline: "getent group docker || sudo groupadd docker"
-          cfg.vm.provision "shell", inline: "sudo usermod -aG docker vagrant"
+          if docker_service == true
+            cfg.vm.provision "shell", inline: "sudo systemctl start docker"
+            cfg.vm.provision "shell", inline: "sudo systemctl enable docker"
+            cfg.vm.provision "shell", inline: "getent group docker || sudo groupadd docker"
+            cfg.vm.provision "shell", inline: "sudo usermod -aG docker vagrant"
+          end
           # Install Gitlab Runner:
-          cfg.vm.provision "shell", inline: "sudo curl --silent --show-error -L --max-redirs 3 --retry 3 --retry-connrefused --retry-delay 2 --max-time 30 --output /usr/bin/gitlab-runner 'https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64'"
+          cfg.vm.provision "shell", inline: "sudo curl --silent --show-error -L --max-redirs 3 --retry 3 --retry-delay 2 --max-time 30 --output /usr/bin/gitlab-runner 'https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64'"
           cfg.vm.provision "shell", inline: "sudo chmod +x /usr/bin/gitlab-runner"
           cfg.vm.provision "shell", inline: "sudo gitlab-runner install --user=vagrant --working-directory=/home/vagrant"
           cfg.vm.provision "shell", inline: "sudo gitlab-runner start"
