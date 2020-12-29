@@ -55,7 +55,7 @@ Vagrant.configure("2") do |config|
           cfg.vm.provision :reload
           # Docker setup:
           docker_service = true
-          if docker = "distro"
+          if docker == "distro"
              # Install distro docker:
             if distro == "arch"
               cfg.vm.provision "shell", inline: "sudo pacman -Sy --noconfirm docker"
@@ -65,6 +65,7 @@ Vagrant.configure("2") do |config|
                 cfg.vm.provision "shell", inline: "sudo yum install -y docker"
               else
                 # Podman instead
+                docker_service = false
                 cfg.vm.provision "shell", inline: "sudo dnf install -y podman slirp4netns"
                 if distro == "rhel"
                   cfg.vm.provision "shell", inline: "sudo dnf module install -y container-tools"
