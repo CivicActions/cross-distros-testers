@@ -52,7 +52,7 @@ Vagrant.configure("2") do |config|
             cfg.vm.provision "shell", inline: "sudo apt-get install -y bash zsh mksh git"
           end
           # Then restart (needed in case of Kernel upgrades)
-          config.vm.provision :reload
+          cfg.vm.provision :reload
           # Docker setup:
           docker_service = true
           if docker = "distro"
