@@ -84,12 +84,11 @@ Vagrant.configure("2") do |config|
           else
             # Install upstream docker:
             if distro == "rhel"
-                cfg.vm.provision "shell", inline: "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
-                if version == "7"
-                  cfg.vm.provision "shell", inline: "sudo yum-config-manager --setopt='docker-ce-stable.baseurl=https://download.docker.com/linux/centos/7/x86_64/stable' --save"
-                end
-                cfg.vm.provision "shell", inline: "sudo yum install -y docker-ce"
+              cfg.vm.provision "shell", inline: "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+              if version == "7"
+                cfg.vm.provision "shell", inline: "sudo yum-config-manager --setopt='docker-ce-stable.baseurl=https://download.docker.com/linux/centos/7/x86_64/stable' --save"
               end
+              cfg.vm.provision "shell", inline: "sudo yum install -y docker-ce"
             else
               cfg.vm.provision "shell", inline: "curl -fsSL https://get.docker.com | sh"
             end
