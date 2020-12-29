@@ -56,8 +56,7 @@ build:
 register:
   stage: register
   script:
-    - echo "${CI_SERVER_URL}"
-    - sudo gitlab-runner unregister --non-interactive --name "${name}" || true
+    - sudo gitlab-runner unregister --name "${name}" || true
     - sudo gitlab-runner register --non-interactive --name "${name}" --builds-dir "${HOME}/builds-${name}" --executor virtualbox --virtualbox-base-name "${name}" --tag-list "cross-distros-testers,${name}"
   parallel:
     <<: *matrix_definition
