@@ -2,6 +2,7 @@ stages:
   - validate
   - update
   - build
+  - register
   - destroy
 
 default:
@@ -9,6 +10,26 @@ default:
     - vagrant plugin install --local
   tags:
     - vagrant
+
+.matrix_template: &matrix_definition
+  matrix:
+    # To update list, run:
+    # vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print "  - " $2 }}'
+    - name: ubuntu1804distro
+    - name: ubuntu1804upstream
+    - name: ubuntu2004distro
+    - name: ubuntu2004upstream
+    - name: rhel7distro
+    - name: rhel7upstream
+    - name: rhel8distro
+    - name: rhel8upstream
+    - name: centos7distro
+    - name: centos7upstream
+    - name: centos8distro
+    - name: centos8upstream
+    - name: archdistro
+    - name: windows_server
+    - name: windows_10
 
 validate:
   stage: validate
@@ -26,26 +47,19 @@ build:
     # We build one at a time, since we have limited memory.
     - vagrant up --provision "${name}"
     - vagrant halt "${name}"
-    # TODO: Register runner here
   parallel:
-    matrix:
-      # To update list, run:
-      # vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print "        - " $2 }}'
-      - name: ubuntu1804distro
-      - name: ubuntu1804upstream
-      - name: ubuntu2004distro
-      - name: ubuntu2004upstream
-      - name: rhel7distro
-      - name: rhel7upstream
-      - name: rhel8distro
-      - name: rhel8upstream
-      - name: centos7distro
-      - name: centos7upstream
-      - name: centos8distro
-      - name: centos8upstream
-      - name: archdistro
-      - name: windows_server
-      - name: windows_10
+    <<: *matrix_definition
+  when: manual
+  only:
+    - master
+
+register:
+  stage: register
+  script:
+    - gitlab-runner unregister --name "${name}" || true
+    - gitlab-runner register --name "${name}" --builds-dir "${HOME}/builds-${name}" --executor virtualbox --virtualbox-base-name "${name}" --tag-list "cross-distros-testers,${name}"
+  parallel:
+    <<: *matrix_definition
   when: manual
   only:
     - master
@@ -55,24 +69,7 @@ destroy:
   script:
     - vagrant destroy --force "${name}"
   parallel:
-    matrix:
-      # To update list, run:
-      # vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print "        - " $2 }}'
-      - name: ubuntu1804distro
-      - name: ubuntu1804upstream
-      - name: ubuntu2004distro
-      - name: ubuntu2004upstream
-      - name: rhel7distro
-      - name: rhel7upstream
-      - name: rhel8distro
-      - name: rhel8upstream
-      - name: centos7distro
-      - name: centos7upstream
-      - name: centos8distro
-      - name: centos8upstream
-      - name: archdistro
-      - name: windows_server
-      - name: windows_10
+    <<: *matrix_definition
   when: manual
   only:
     - master
