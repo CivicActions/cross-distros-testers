@@ -7,7 +7,6 @@ distros = {
   "centos" => { "7"  => [ "distro", "upstream" ], "8" => [ "distro", "upstream" ] },
   "arch" => { ""  => [ "distro" ] }
 }
-groups = {}
 
 def get_windows_vm_box_version()
   # We're pinning to this specific version due to recent Docker versions (above 19.03.05) being broken
@@ -16,7 +15,7 @@ def get_windows_vm_box_version()
 end
 
 Vagrant.configure("2") do |config|
-  config.vagrant.plugins = ["vagrant-env", "vagrant-reload", "winrm", "winrm-fs", "winrm-elevated"]
+  # config.vagrant.plugins = ["vagrant-env", "vagrant-reload", "winrm", "winrm-fs", "winrm-elevated"]
   config.vagrant.sensitive = [ENV["REDHAT_USERNAME"], ENV['REDHAT_PASSWORD']]
   config.vm.provider "virtualbox" do |v|
     v.memory = 512
@@ -25,11 +24,8 @@ Vagrant.configure("2") do |config|
   config.vm.boot_timeout = 600
 
   distros.each_with_index do |(distro, versions)|
-    groups["distro_" + distro] = []
     versions.each_with_index do |(version, dockers)|
-      groups["release_" + distro + version] = []
       dockers.each do |(docker)|
-        groups["docker_" + docker] = []
         hostname = distro + version + docker
         config.vm.define hostname do |cfg|
           cfg.vm.box = "generic/" + distro + version
@@ -37,39 +33,50 @@ Vagrant.configure("2") do |config|
             override.vm.hostname = hostname
             vb.name = hostname
           end
-          groups["distro_" + distro] << hostname
-          groups["release_" + distro + version] ||= []
-          groups["release_" + distro + version] << hostname
-          groups["docker_" + docker] << hostname
-          if distro == "rhel" or distro == "centos"
-            groups["family_el" + version] ||= []
-            groups["family_el" + version] << hostname
-          end
+          # Upgrade all packages and install base packages:
           if distro == "arch"
-            cfg.vm.provision "shell", inline: "pacman -Sy --noconfirm python"
+            cfg.vm.provision "shell", inline: "sudo pacman -Syuu --noconfirm"
+            cfg.vm.provision "shell", inline: "sudo pacman -Sy --noconfirm bash zsh mksh git"
           end
           if distro == "rhel"
-            cfg.vm.provision "shell", inline: "subscription-manager register --force --username '" + ENV['REDHAT_USERNAME'] + "' --password '" + ENV['REDHAT_PASSWORD'] + "' --auto-attach"
+            cfg.vm.provision "shell", inline: "sudo subscription-manager register --force --username '" + ENV['REDHAT_USERNAME'] + "' --password '" + ENV['REDHAT_PASSWORD'] + "' --auto-attach"
+            if version == "7"
+              cfg.vm.provision "shell", inline: "sudo subscription-manager repos --enable rhel-7-server-extras-rpms"
+            end
           end
-          # Copy in Ansible files.
-          cfg.vm.provision "file", source: "playbook.yml", destination: "/home/vagrant/playbook.yml"
-          cfg.vm.provision "file", source: "requirements.yml", destination: "/home/vagrant/requirements.yml"
-          # Primary provisioning in Ansible.
-          cfg.vm.provision "ansible_local" do |ansible|
-            ansible.become = true
-            ansible.provisioning_path = "/home/vagrant"
-            ansible.playbook = "playbook.yml"
-            ansible.install_mode = "pip"
-            ansible.version = "2.9.9"
-            ansible.galaxy_role_file = "requirements.yml"
-            ansible.galaxy_roles_path = "/etc/ansible/roles"
-            ansible.galaxy_command = "sudo ansible-galaxy install --role-file=%{role_file} --roles-path=%{roles_path} --force"
-            ansible.groups = groups
-            ansible.extra_vars = {
-              redhat_username: ENV['REDHAT_USERNAME'],
-              redhat_password: ENV['REDHAT_PASSWORD'],
-            }
+          if distro == "rhel" || distro == "centos"
+            cfg.vm.provision "shell", inline: "sudo yum install -y bash zsh mksh git"
           end
+          if distro == "ubuntu"
+            cfg.vm.provision "shell", inline: "sudo apt-get -y upgrade"
+            cfg.vm.provision "shell", inline: "sudo apt-get install -y bash zsh mksh git"
+          end
+          # Docker setup:
+          if docker = "distro"
+             # Install distro docker:
+            if distro == "arch"
+              cfg.vm.provision "shell", inline: "sudo pacman -Sy --noconfirm docker"
+            end
+            if distro == "rhel" || distro == "centos"
+              cfg.vm.provision "shell", inline: "sudo yum install -y docker"
+            end
+            if distro == "ubuntu"
+              cfg.vm.provision "shell", inline: "sudo apt-get install -y docker.io"
+            end
+          else
+             # Install upstream docker:
+             cfg.vm.provision "shell", inline: "curl -fsSL https://get.docker.com | sh"
+          end
+          # Ensure service started and vagrant user has access:
+          cfg.vm.provision "shell", inline: "sudo systemctl start docker"
+          cfg.vm.provision "shell", inline: "sudo systemctl enable docker"
+          cfg.vm.provision "shell", inline: "getent group docker || sudo groupadd docker"
+          cfg.vm.provision "shell", inline: "sudo usermod -aG docker vagrant"
+          # Install Gitlab Runner:
+          cfg.vm.provision "shell", inline: "sudo curl -L --output /usr/local/bin/gitlab-runner 'https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64'"
+          cfg.vm.provision "shell", inline: "sudo chmod +x /usr/local/bin/gitlab-runner"
+          cfg.vm.provision "shell", inline: "sudo gitlab-runner install --user=vagrant --working-directory=/home/vagrant"
+          cfg.vm.provision "shell", inline: "sudo gitlab-runner start"
         end
       end
     end
