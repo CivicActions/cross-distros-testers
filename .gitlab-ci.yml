@@ -44,7 +44,7 @@ build:
   stage: build
   script:
     # We build one at a time, since we have limited memory.
-    - vagrant up --provision "${name}"
+    - vagrant up "${name}"
     - export SSH_USER=$(vagrant ssh-config "${name}" | awk '{ if ($1 == "User") { print $2 }}')
     - export SSH_IDENTITY_FILE=$(vagrant ssh-config "${name}" | awk '{ if ($1 == "IdentityFile") { print $2 }}')
     - sudo gitlab-runner unregister --name "${name}" || true
