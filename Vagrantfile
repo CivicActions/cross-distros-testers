@@ -38,7 +38,7 @@ Vagrant.configure("2") do |config|
           # Upgrade all packages and install base packages:
           if distro == "arch"
             cfg.vm.provision "shell", inline: "sudo pacman -Syuu --noconfirm"
-            cfg.vm.provision "shell", inline: "sudo pacman -Sy --noconfirm bash zsh mksh git"
+            cfg.vm.provision "shell", inline: "sudo pacman -Sy --noconfirm bash dash zsh mksh git"
           end
           if distro == "rhel"
             cfg.vm.provision "shell", inline: "sudo subscription-manager register --force --username '" + ENV['REDHAT_USERNAME'] + "' --password '" + ENV['REDHAT_PASSWORD'] + "' --auto-attach"
