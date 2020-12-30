@@ -20,6 +20,8 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |v|
     v.memory = 512
     v.cpus = 1
+    v.gui = false
+    v.linked_clone = true
   end
   config.vm.boot_timeout = 600
 
@@ -84,8 +86,10 @@ Vagrant.configure("2") do |config|
           else
             # Install upstream docker:
             if distro == "rhel"
+              # Use repo directly for RHEL as the script doesn't work
               cfg.vm.provision "shell", inline: "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
               if version == "7"
+                # The baseurl in the repo is broken for RHEL 7: 
                 cfg.vm.provision "shell", inline: "sudo yum-config-manager --setopt='docker-ce-stable.baseurl=https://download.docker.com/linux/centos/7/x86_64/stable' --save"
               end
               cfg.vm.provision "shell", inline: "sudo yum install -y docker-ce"
@@ -116,10 +120,7 @@ Vagrant.configure("2") do |config|
     cfg.vm.box_version = get_windows_vm_box_version()
     cfg.vm.communicator = 'winrm'
     cfg.vm.provider "virtualbox" do |v|
-      v.gui = false
       v.memory = '2048'
-      v.cpus = 1
-      v.linked_clone = true
       v.customize ['modifyvm', :id, '--nested-hw-virt', 'on']
     end
 
@@ -144,10 +145,7 @@ Vagrant.configure("2") do |config|
     cfg.vm.box_version = get_windows_vm_box_version()
     cfg.vm.communicator = 'winrm'
     cfg.vm.provider "virtualbox" do |v|
-      v.gui = false
       v.memory = '2048'
-      v.cpus = 1
-      v.linked_clone = true
       v.customize ['modifyvm', :id, '--nested-hw-virt', 'on']
     end
 
