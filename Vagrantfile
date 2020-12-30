@@ -73,6 +73,8 @@ Vagrant.configure("2") do |config|
                 if distro == "rhel"
                   cfg.vm.provision "shell", inline: "sudo dnf module install -y container-tools"
                 end
+                # Add Docker alias
+                cfg.vm.provision "shell", inline: 'echo "alias docker=\'podman\'" >> /etc/bash.bashrc'
                 # Setup rootless access: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/building_running_and_managing_containers/starting-with-containers_building-running-and-managing-containers
                 cfg.vm.provision "shell", inline: 'echo "user.max_user_namespaces=28633" > /etc/sysctl.d/userns.conf'
                 cfg.vm.provision "shell", inline: "sysctl -p /etc/sysctl.d/userns.conf"

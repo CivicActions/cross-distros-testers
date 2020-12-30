@@ -7,6 +7,8 @@ stages:
 default:
   before_script:
     - vagrant plugin install --local
+    # Ensure virtualbox has access to update the central configuration.
+    - sudo /usr/bin/chmod g+rw -R /etc/vbox
   tags:
     - vagrant
 
@@ -48,7 +50,7 @@ build:
     - export SSH_USER=$(vagrant ssh-config "${name}" | awk '{ if ($1 == "User") { print $2 }}')
     - export SSH_IDENTITY_FILE=$(vagrant ssh-config "${name}" | awk '{ if ($1 == "IdentityFile") { print $2 }}')
     - sudo gitlab-runner unregister --name "${name}" || true
-    - sudo --preserve-env=CI_SERVER_URL,REGISTRATION_TOKEN,SSH_USER,SSH_IDENTITY_FILE gitlab-runner register --non-interactive --name "${name}" --builds-dir "${HOME}/builds-${name}" --executor virtualbox --virtualbox-base-name "${name}" --tag-list "cross-distros-testers,${name}" --ssh-user="${SSH_USER}" --ssh-identity-file="${SSH_IDENTITY_FILE}"
+    - sudo --preserve-env=CI_SERVER_URL,REGISTRATION_TOKEN,SSH_USER,SSH_IDENTITY_FILE gitlab-runner register --non-interactive --name "${name}" --executor virtualbox --virtualbox-base-name "${name}" --tag-list "cross-distros-testers,${name}" --ssh-user="${SSH_USER}" --ssh-identity-file="${SSH_IDENTITY_FILE}"
     - vagrant halt "${name}"
   parallel:
     <<: *matrix_definition
