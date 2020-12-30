@@ -7,8 +7,8 @@ stages:
 default:
   before_script:
     - vagrant plugin install --local
-    # Ensure virtualbox has access to update the central configuration.
-    - sudo /usr/bin/chmod g+rw -R /etc/vbox
+    # Ensure virtualbox has access to update the Virtualbox configuration & images.
+    - sudo /usr/bin/chmod g+rw -R /etc/vbox /var/vbox
   tags:
     - vagrant
 

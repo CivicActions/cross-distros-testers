@@ -121,9 +121,11 @@ Vagrant.configure("2") do |config|
     cfg.vm.box = 'StefanScherer/windows_2019_docker'
     cfg.vm.box_version = get_windows_vm_box_version()
     cfg.vm.communicator = 'winrm'
-    cfg.vm.provider "virtualbox" do |v|
+    cfg.vm.provider "virtualbox" do |v, override|
       v.memory = '2048'
       v.customize ['modifyvm', :id, '--nested-hw-virt', 'on']
+      override.vm.hostname = 'windows_server'
+      v.name = 'windows_server'
     end
 
     cfg.vm.synced_folder '.', 'C:\GitLab-Runner'
@@ -146,9 +148,11 @@ Vagrant.configure("2") do |config|
     cfg.vm.box = 'StefanScherer/windows_10'
     cfg.vm.box_version = get_windows_vm_box_version()
     cfg.vm.communicator = 'winrm'
-    cfg.vm.provider "virtualbox" do |v|
+    cfg.vm.provider "virtualbox" do |v, override|
       v.memory = '2048'
       v.customize ['modifyvm', :id, '--nested-hw-virt', 'on']
+      override.vm.hostname = 'windows_10'
+      v.name = 'windows_10'
     end
 
     cfg.vm.synced_folder '.', 'C:\GitLab-Runner'
