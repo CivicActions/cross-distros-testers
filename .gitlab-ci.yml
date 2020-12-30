@@ -56,8 +56,8 @@ build:
 register:
   stage: register
   script:
-    - sudo gitlab-runner unregister --name "${name}" || true
-    - sudo gitlab-runner register --non-interactive --name "${name}" --builds-dir "${HOME}/builds-${name}" --executor virtualbox --virtualbox-base-name "${name}" --tag-list "cross-distros-testers,${name}"
+    - sudo --preserve-env=CI_SERVER_URL,CI_SERVER_TOKEN gitlab-runner unregister --name "${name}" || true
+    - sudo --preserve-env=CI_SERVER_URL,CI_SERVER_TOKEN gitlab-runner register --non-interactive --name "${name}" --builds-dir "${HOME}/builds-${name}" --executor virtualbox --virtualbox-base-name "${name}" --tag-list "cross-distros-testers,${name}"
   parallel:
     <<: *matrix_definition
   when: manual
