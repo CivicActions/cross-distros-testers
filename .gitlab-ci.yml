@@ -29,8 +29,8 @@ default:
     - name: centos8distro
     - name: centos8upstream
     - name: archdistro
-    - name: windows_server
-    - name: windows_10
+    - name: windowsserver
+    - name: windows10
 
 validate:
   stage: validate

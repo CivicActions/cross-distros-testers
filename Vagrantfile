@@ -117,15 +117,15 @@ Vagrant.configure("2") do |config|
   end
 
   # Windows boxes and scripts based on: https://gitlab.com/gitlab-org/gitlab-runner/-/blob/master/Vagrantfile
-  config.vm.define 'windows_server', primary: true do |cfg|
+  config.vm.define 'windowsserver', primary: true do |cfg|
     cfg.vm.box = 'StefanScherer/windows_2019_docker'
     cfg.vm.box_version = get_windows_vm_box_version()
     cfg.vm.communicator = 'winrm'
     cfg.vm.provider "virtualbox" do |v, override|
       v.memory = '2048'
       v.customize ['modifyvm', :id, '--nested-hw-virt', 'on']
-      override.vm.hostname = 'windows_server'
-      v.name = 'windows_server'
+      override.vm.hostname = 'windowsserver'
+      v.name = 'windowsserver'
     end
 
     cfg.vm.synced_folder '.', 'C:\GitLab-Runner'
@@ -144,15 +144,15 @@ Vagrant.configure("2") do |config|
     cfg.vm.provision 'shell', path: 'scripts/start_sshd.ps1'
   end
 
-  config.vm.define 'windows_10', autostart: false do |cfg|
+  config.vm.define 'windows10', autostart: false do |cfg|
     cfg.vm.box = 'StefanScherer/windows_10'
     cfg.vm.box_version = get_windows_vm_box_version()
     cfg.vm.communicator = 'winrm'
     cfg.vm.provider "virtualbox" do |v, override|
       v.memory = '2048'
       v.customize ['modifyvm', :id, '--nested-hw-virt', 'on']
-      override.vm.hostname = 'windows_10'
-      v.name = 'windows_10'
+      override.vm.hostname = 'windows10'
+      v.name = 'windows10'
     end
 
     cfg.vm.synced_folder '.', 'C:\GitLab-Runner'
