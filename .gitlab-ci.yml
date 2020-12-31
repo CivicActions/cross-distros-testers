@@ -41,6 +41,7 @@ update:
   stage: update
   script:
     - vagrant box update
+  when: manual
 
 build:
   stage: build
