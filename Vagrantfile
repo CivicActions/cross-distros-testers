@@ -55,7 +55,7 @@ Vagrant.configure("2") do |config|
             cfg.vm.provision "shell", inline: "sudo apt-get -y install bash zsh mksh git"
             if version == "2004"
               # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/26605
-              cfg.vm.provision "shell", inline: 'rm "${HOME}/.bash_logout"'
+              cfg.vm.provision "shell", inline: 'rm --verbose --force "/home/vagrant/.bash_logout"'
             end
           end
           # Then restart (needed in case of Kernel upgrades)
