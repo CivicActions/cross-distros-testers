@@ -53,6 +53,10 @@ Vagrant.configure("2") do |config|
           if distro == "ubuntu"
             cfg.vm.provision "shell", inline: "sudo apt-get -y upgrade"
             cfg.vm.provision "shell", inline: "sudo apt-get -y install bash zsh mksh git"
+            if version == "2004"
+              # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/-/issues/26605
+              cfg.vm.provision "shell", inline: 'rm "${HOME}/.bash_logout"'
+            end
           end
           # Then restart (needed in case of Kernel upgrades)
           cfg.vm.provision :reload
