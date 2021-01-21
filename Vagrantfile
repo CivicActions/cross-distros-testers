@@ -8,12 +8,6 @@ distros = {
   "arch" => { ""  => [ "distro" ] }
 }
 
-def get_windows_vm_box_version()
-  # We're pinning to this specific version due to recent Docker versions (above 19.03.05) being broken
-  # (see https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27115)
-  '2020.04.15'
-end
-
 Vagrant.configure("2") do |config|
   # config.vagrant.plugins = ["vagrant-env", "vagrant-reload", "winrm", "winrm-fs", "winrm-elevated"]
   config.vagrant.sensitive = [ENV["REDHAT_USERNAME"], ENV['REDHAT_PASSWORD']]
@@ -122,8 +116,7 @@ Vagrant.configure("2") do |config|
 
   # Windows boxes and scripts based on: https://gitlab.com/gitlab-org/gitlab-runner/-/blob/master/Vagrantfile
   config.vm.define 'windowsserver', primary: true do |cfg|
-    cfg.vm.box = 'StefanScherer/windows_2019_docker'
-    cfg.vm.box_version = get_windows_vm_box_version()
+    cfg.vm.box = 'gusztavvargadr/docker-windows'
     cfg.vm.communicator = 'winrm'
     cfg.vm.provider "virtualbox" do |v, override|
       v.memory = '2048'
@@ -135,22 +128,11 @@ Vagrant.configure("2") do |config|
     cfg.vm.synced_folder '.', 'C:\GitLab-Runner'
 
     cfg.vm.provision 'shell', path: 'scripts/base.ps1'
-    cfg.vm.provision 'shell', path: 'scripts/install_PSWindowsUpdate.ps1'
-    cfg.vm.provision 'shell', path: 'scripts/windows_update.ps1'
-
-    # Restart the box to install the updates, and update again.
     cfg.vm.provision :reload
-    cfg.vm.provision 'shell', path: 'scripts/windows_update.ps1'
-    cfg.vm.provision :reload
-
-    cfg.vm.provision 'shell', path: 'scripts/enable_sshd.ps1'
-    cfg.vm.provision :reload
-    cfg.vm.provision 'shell', path: 'scripts/start_sshd.ps1'
   end
 
   config.vm.define 'windows10', autostart: false do |cfg|
-    cfg.vm.box = 'StefanScherer/windows_10'
-    cfg.vm.box_version = get_windows_vm_box_version()
+    cfg.vm.box = 'gusztavvargadr/windows-10'
     cfg.vm.communicator = 'winrm'
     cfg.vm.provider "virtualbox" do |v, override|
       v.memory = '2048'
@@ -164,9 +146,6 @@ Vagrant.configure("2") do |config|
     cfg.vm.provision 'shell', path: 'scripts/base.ps1'
     cfg.vm.provision 'shell', path: 'scripts/docker_desktop.ps1'
     cfg.vm.provision 'shell', path: 'scripts/enable_developer_mode.ps1'
-
-    cfg.vm.provision 'shell', path: 'scripts/enable_sshd.ps1'
     cfg.vm.provision :reload
-    cfg.vm.provision 'shell', path: 'scripts/start_sshd.ps1'
   end
 end

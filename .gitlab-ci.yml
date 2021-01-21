@@ -2,6 +2,7 @@ stages:
   - validate
   - update
   - build
+  - register
   - destroy
 
 default:
@@ -12,7 +13,7 @@ default:
   tags:
     - vagrant
 
-.matrix_template: &matrix_definition
+.matrix_template: &matrix_ondemand
   matrix:
     # To update list, run:
     # vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print "  - " $2 }}'
@@ -29,6 +30,10 @@ default:
     - name: centos8distro
     - name: centos8upstream
     - name: archdistro
+.matrix_template: &matrix_alwayson
+  matrix:
+    # To update list, run:
+    # vagrant status --machine-readable | awk 'BEGIN { FS = "," } ; { if ($3 == "metadata") { print "  - " $2 }}'
     - name: windowsserver
     - name: windows10
 
@@ -43,7 +48,7 @@ update:
     - vagrant box update
   when: manual
 
-build:
+build_ondemand:
   stage: build
   script:
     # We build one at a time, since we have limited memory.
@@ -54,7 +59,18 @@ build:
     - sudo --preserve-env=CI_SERVER_URL,REGISTRATION_TOKEN,SSH_USER,SSH_IDENTITY_FILE gitlab-runner register --non-interactive --name "${name}" --executor virtualbox --virtualbox-base-name "${name}" --tag-list "cross-distros-testers,${name}" --ssh-user="${SSH_USER}" --ssh-identity-file="${SSH_IDENTITY_FILE}"
     - vagrant halt "${name}"
   parallel:
-    <<: *matrix_definition
+    <<: *matrix_ondemand
+  when: manual
+  only:
+    - master
+
+build_alwayson:
+  stage: build
+  script:
+    # We build one at a time, since we have limited memory.
+    - vagrant up "${name}"
+  parallel:
+    <<: *matrix_alwayson
   when: manual
   only:
     - master
@@ -64,7 +80,8 @@ destroy:
   script:
     - vagrant destroy --force "${name}"
   parallel:
-    <<: *matrix_definition
+    <<: *matrix_ondemand
+    <<: *matrix_alwayson
   when: manual
   only:
     - master
